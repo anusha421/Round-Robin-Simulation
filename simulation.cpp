@@ -2,30 +2,39 @@
 using namespace std;
 
 class Request {
-    string name;
-    string person;
-    string time;
-    string remaining_time;
-
     public:
-        Request(string name, string person, string time) {
+        int process_id;
+        string name;
+        char person;
+        int atime;
+        int btime;
+        int remaining_time;
+
+        Request() {}
+        Request(int process_id, string name, char person, int atime, int btime) {
+            this->process_id = process_id;
             this->name = name;
             this->person = person;
-            this->time = time;
-            this->remaining_time = time;
+            this->atime = atime;
+            this->btime = btime;
+            this->remaining_time = atime;
         }
 };
 
 class RoundRobin {
     private:
+        // time quantum
         int time_slice;
+
+        // student and teacher queues
         queue<Request> qS;
         queue<Request> qT;
+
         // current time
         int cur;
 
     public:
-        RoundRobin(int time_slice, string requests[][5]) {
+        RoundRobin(int time_slice, Request requests[]) {
             this->time_slice = time_slice;
             // this->requests = requests
         }
@@ -45,21 +54,21 @@ int main() {
     cin >> requests;
 
     // Store data in 2D array
-    string data[requests][5];
+    Request data[requests];
 
     // Ask user for input
     for(int i = 0; i < requests; i++) {
-        data[i][0] = "P" + (to_string(i + 1));
+        int id = (i + 1);
 
+        string name;
         cout << "Enter your name: ";
-        cin >> data[i][1];
+        cin >> name;
 
         int atime = 0;
         do
         {
             cout << "Enter arrival time (HHMM) between 1000 and 1200: ";
-            cin >> data[i][2];
-            atime = stoi(data[i][2]);
+            cin >> atime;
         }
         while (atime < 1000 || atime > 1200);
 
@@ -67,21 +76,20 @@ int main() {
         do
         {
             cout << "Enter burst time (in minutes): ";
-            cin >> data[i][3];
-            btime = stoi(data[i][3]);
+            cin >> btime;
         }
         while(btime > 120 || btime <= 0);
 
+        char person;
         do
         {
             cout << "Select student (s/S) or teacher (t/T): ";
-            cin >> data[i][4];
+            cin >> person;
         }
-        while(data[i][4] != "s" && data[i][4] != "t" && data[i][4] != "S" && data[i][4] != "T");
+        while(person != 's' && person != 't' && person != 'S' && person != 'T');
 
-        transform(data[i][4].begin(), data[i][4].end(), data[i][4].begin(), ::tolower);
-
-        Request(data[i][1], data[i][4], data[i][3]);
+        Request obj(id, name, person, atime, btime);
+        data[i] = obj;
 
         cout << '\n';
     }
@@ -93,10 +101,7 @@ int main() {
     cout << "Process ID: " << "      " << "Name: " << "      " << "Arrival Time" << "      " << "Burst Time: " << "      " << "Student/Teacher" << '\n';
 
     for(int i = 0; i < requests; i++) {
-        for(int j = 0; j < 5; j++) {
-            cout << data[i][j] << "      ";
-        }
-        cout << '\n';
+        cout << data[i].process_id << "      " << data[i].name << "      " << data[i].atime << "      " << data[i].btime << "      " << data[i].person << '\n';
     }
 
     return 0;
