@@ -1,5 +1,3 @@
-#include <iostream>
-#include <queue>
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -20,27 +18,27 @@ int main() {
         cout << "Enter your name: ";
         cin >> data[i][1];
 
-        cout << "Enter arrival time (HHMM) between 1000 and 1200: ";
         int atime = 0;
         do
         {
+            cout << "Enter arrival time (HHMM) between 1000 and 1200: ";
             cin >> data[i][2];
             atime = stoi(data[i][2]);
         }
         while (atime < 1000 || atime > 1200);
 
-        cout << "Enter burst time (in minutes): ";
         int btime = 0;
         do
         {
+            cout << "Enter burst time (in minutes): ";
             cin >> data[i][3];
             btime = stoi(data[i][3]);
         }
-        while(btime > 120);
+        while(btime > 120 || btime <= 0);
 
-        cout << "Select student (s/S) or teacher (t/T): ";
         do
         {
+            cout << "Select student (s/S) or teacher (t/T): ";
             cin >> data[i][4];
         }
         while(data[i][4] != "s" && data[i][4] != "t" && data[i][4] != "S" && data[i][4] != "T");
