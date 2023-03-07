@@ -17,7 +17,7 @@ class Request {
             this->person = person;
             this->atime = atime;
             this->btime = btime;
-            this->remaining_time = atime;
+            this->remaining_time = btime;
         }
 };
 
@@ -25,18 +25,73 @@ class RoundRobin {
     private:
         // time quantum
         int time_slice;
-
         // student and teacher queues
         queue<Request> qS;
         queue<Request> qT;
-
         // current time
         int cur;
+        char cur_q = '0';
+        int total_time;
+        int queries;
 
     public:
-        RoundRobin(int time_slice, Request requests[]) {
-            this->time_slice = time_slice;
-            // this->requests = requests
+        RoundRobin(int tq) {
+            this->time_slice = tq;
+            this->cur = 1000;
+            this->total_time = 0;
+            this->queries = 0;
+        }
+
+        void schedule(Request data[]) {
+            for(int time = 1000; time < 1200; time += time_slice) {
+                
+                for(int i = 0; i < sizeof(data); i++) {
+                    if(data[i].atime <= cur && data[i].atime != (cur - time_slice)) {
+                        if(data[i].person == 's' || data[i].person == 'S')
+                            qS.push(data[i]);
+                        else
+                            qT.push(data[i]);
+                    }
+                    
+                    if(!qS.empty() || !qT.empty()) {
+                        if(cur_q == '0') {
+                            if(qS.front().atime < qT.front().atime) {
+                                cur_q = 's';
+                            }
+                            else {
+                                cur_q = 't';
+                            }
+                        }
+
+                        if(cur_q == 's') {
+                            Request r = qS.front();
+                            qS.pop();
+                            if(r.btime > time_slice) {
+                                r.remaining_time = r.btime - time_slice;
+                                qS.push(r);
+                                total_time += time_slice;
+                            }
+                            else {
+                                total_time += r.remaining_time;
+                            }
+                        }
+
+                        else {
+                            Request r = qT.front();
+                            qT.pop();
+                            if(r.btime > time_slice) {
+                                r.remaining_time = r.btime - time_slice;
+                                qT.push(r);
+                                total_time += time_slice;
+                            }
+                            else {
+                                total_time += r.remaining_time;
+                            }
+                        }
+                    }
+                }
+
+            }
         }
 
 };
@@ -95,7 +150,8 @@ int main() {
     }
 
     // Create scheduler object
-    RoundRobin scheduler(tq, data);
+    RoundRobin scheduler(tq);
+    scheduler.schedule(data);
 
     // Display data
     cout << "Process ID: " << "      " << "Name: " << "      " << "Arrival Time" << "      " << "Burst Time: " << "      " << "Student/Teacher" << '\n';
