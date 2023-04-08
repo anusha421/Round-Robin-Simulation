@@ -56,3 +56,7 @@ If the current time + time slice is greater than 120 then this is the last proce
 Now the AT queue is re-loaded and the total query time updated.
 If the remaining time is zero then the process has been completed and a new current process is re allocated by checking the empty queues and the queueFlag again.
 If the remaining time is not zero then the process is almost similar the only exception being that the same process is not popped completely instead its pushed back into its queue with updated remaining time.
+
+
+### Conclusion
+At the end of the program, the completion time of each process is added. The total query time and the average query time is displayed.
