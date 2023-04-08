@@ -59,4 +59,4 @@ If the remaining time is not zero then the process is almost similar the only ex
 
 
 ### Conclusion
-At the end of the program, the completion time of each process is added. The total query time and the average query time is displayed.
+At the end of the program, the completion time of each process, the total query time and the average query time is displayed.
