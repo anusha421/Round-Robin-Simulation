@@ -1,164 +1,234 @@
+// Multi Queue Round Robin
+
 #include <bits/stdc++.h>
 using namespace std;
 
-class Request {
-    public:
-        int process_id;
-        string name;
-        char person;
-        int atime;
-        int btime;
-        int remaining_time;
-
-        Request() {}
-        Request(int process_id, string name, char person, int atime, int btime) {
-            this->process_id = process_id;
-            this->name = name;
-            this->person = person;
-            this->atime = atime;
-            this->btime = btime;
-            this->remaining_time = btime;
-        }
+struct Process {
+    int id;
+    int priority;
+    int arrivalTime;
+    int burstTime;
+    int remainingTime;
+    int executedTime;
 };
 
-class RoundRobin {
-    private:
-        // time quantum
-        int time_slice;
-        // student and teacher queues
-        queue<Request> qS;
-        queue<Request> qT;
-        // current time
-        int cur;
-        char cur_q = '0';
-        int total_time;
-        int queries;
+int pId = 100;
 
-    public:
-        RoundRobin(int tq) {
-            this->time_slice = tq;
-            this->cur = 1000;
-            this->total_time = 0;
-            this->queries = 0;
+vector<Process> createProcess() {
+    int n;
+    cout << "Enter the number of process: ";
+    cin >> n;
+
+    // Create an array of process(obj).
+    vector<Process> p(n);
+
+    for (int i = 0; i <= n; ++i)
+    {
+    
+        // clear screen for each input.
+        system("cls"); 
+
+        if (i == n) break;
+
+        // allocate processId 
+        p[i].id = pId++;
+
+        cout << "Process Id : " << p[i].id << endl << "\n";
+
+        // Take input: Arrival time, Burst time, Priority of the process.
+        cout << "Enter arrivalTime [0-120]: ";
+        cin >> p[i].arrivalTime;
+        cout << "Enter burstTime: ";
+        cin >> p[i].burstTime;
+        cout << "Enter priority(1: Teacher | 0: Student): ";
+        cin >> p[i].priority;
+
+        // Set remaining time and executed time.
+        p[i].remainingTime = p[i].burstTime;
+        p[i].executedTime = 0;
+    }
+
+    return p;
+}
+
+void setArrivalTimeQueue(queue<Process> &AT, vector<Process> &p) {
+    sort(p.begin(), p.end(), [](Process &v1, Process &v2){return v1.arrivalTime < v2.arrivalTime;});
+    for(auto &it: p) {AT.push(it);}
+}
+
+int main () {
+
+    // Teacher, Student wait queue 
+    // Q1: Teacher queue. 
+    // Q2: Student queue.
+    queue<Process> q1, q2;
+
+    // Arrival time
+    queue<Process> AT;
+
+    // Time quantum
+    int tq;
+    cout << "Enter the time quantum: ";
+    cin >> tq;
+
+    vector<Process> p = createProcess();
+    setArrivalTimeQueue(AT, p);
+
+    int idle = 1, queueFlag = 0;
+    // 0 : queueFlag , Q1 queue : Teacher 
+    int currentTime = 0, queryTime = 0;
+
+    Process currentProcess = Process();
+
+    while((!AT.empty() || !q1.empty() || !q2.empty() || !idle) && currentTime < 120) {
+
+        // Arrival Cycle
+
+        // Load Arrived processes 
+        while(!AT.empty() && currentTime >= AT.front().arrivalTime) {
+            if(AT.front().priority) {
+                q1.push(AT.front());
+            }
+            else {
+                q2.push(AT.front());
+            }
+            AT.pop();
         }
 
-        void schedule(Request data[]) {
-            for(int time = 1000; time < 1200; time += time_slice) {
-                
-                for(int i = 0; i < sizeof(data); i++) {
-                    if(data[i].atime <= cur && data[i].atime != (cur - time_slice)) {
-                        if(data[i].person == 's' || data[i].person == 'S')
-                            qS.push(data[i]);
-                        else
-                            qT.push(data[i]);
-                    }
-                    
-                    if(!qS.empty() || !qT.empty()) {
-                        if(cur_q == '0') {
-                            if(qS.front().atime < qT.front().atime) {
-                                cur_q = 's';
-                            }
-                            else {
-                                cur_q = 't';
-                            }
-                        }
-
-                        if(cur_q == 's') {
-                            Request r = qS.front();
-                            qS.pop();
-                            if(r.btime > time_slice) {
-                                r.remaining_time = r.btime - time_slice;
-                                qS.push(r);
-                                total_time += time_slice;
-                            }
-                            else {
-                                total_time += r.remaining_time;
-                            }
-                        }
-
-                        else {
-                            Request r = qT.front();
-                            qT.pop();
-                            if(r.btime > time_slice) {
-                                r.remaining_time = r.btime - time_slice;
-                                qT.push(r);
-                                total_time += time_slice;
-                            }
-                            else {
-                                total_time += r.remaining_time;
-                            }
-                        }
-                    }
+        if (idle) {
+            if(!q1.empty() && !q2.empty()) {
+                if (q1.front().arrivalTime <= q2.front().arrivalTime) {
+                    currentProcess = q1.front();
+                    q1.pop();
+                    queueFlag = 0;
                 }
-
+                else {
+                    currentProcess = q2.front();
+                    q2.pop();
+                    queueFlag = 1;
+                }
+                idle = 0;
+            }
+            else if (!q1.empty()) {
+                currentProcess = q1.front();
+                q1.pop();
+                idle = 0;
+                queueFlag = 0;
+            }
+            else if (!q2.empty()) {
+                currentProcess = q2.front();
+                q2.pop();
+                idle = 0;
+                queueFlag = 1;
             }
         }
 
-};
-
-int main() {
-
-    // Enter time slice
-    int tq;
-    cout << "Enter time for each appointment: ";
-    cin >> tq;
-
-    // Ask for number of requests from user
-    int requests;
-    cout << "Enter number of requests: ";
-    cin >> requests;
-
-    // Store data in 2D array
-    Request data[requests];
-
-    // Ask user for input
-    for(int i = 0; i < requests; i++) {
-        int id = (i + 1);
-
-        string name;
-        cout << "Enter your name: ";
-        cin >> name;
-
-        int atime = 0;
-        do
-        {
-            cout << "Enter arrival time (HHMM) between 1000 and 1200: ";
-            cin >> atime;
+        // Execution cycle 
+        if (idle) {
+            currentTime++;
+            continue;
         }
-        while (atime < 1000 || atime > 1200);
 
-        int btime = 0;
-        do
-        {
-            cout << "Enter burst time (in minutes): ";
-            cin >> btime;
+        int timeSlice = min(tq, currentProcess.remainingTime);
+        currentProcess.remainingTime -= timeSlice;
+        currentProcess.executedTime += timeSlice;
+        if(currentTime + timeSlice > 120){
+            break;
+        }else{
+            currentTime += timeSlice;
         }
-        while(btime > 120 || btime <= 0);
 
-        char person;
-        do
-        {
-            cout << "Select student (s/S) or teacher (t/T): ";
-            cin >> person;
+        while(!AT.empty() && currentTime >= AT.front().arrivalTime) {
+            if(AT.front().priority) {
+                q1.push(AT.front());
+            }
+            else {
+                q2.push(AT.front());
+            }
+            AT.pop();
         }
-        while(person != 's' && person != 't' && person != 'S' && person != 'T');
 
-        Request obj(id, name, person, atime, btime);
-        data[i] = obj;
+        // Query Prcessed for timeSlice mins.
+        queryTime += timeSlice;
 
-        cout << '\n';
+        // Completion Cycle 
+        if (currentProcess.remainingTime == 0) {
+
+            if(currentTime <= 59) 
+                cout << "Process " << currentProcess.id << " finished at time 10:" << currentTime << endl;
+            else if(currentTime == 60) {
+                cout << "Process " << currentProcess.id << " finished at time 11:00" << endl;
+            }
+            else if(currentTime > 60 && currentTime < 120)
+                cout << "Process " << currentProcess.id << " finished at time 11:" << currentTime - 60 << endl;
+            else
+                cout << "Process " << currentProcess.id << " finished at time 12:00" << endl;
+
+            currentProcess = Process();
+            idle = 1;
+
+            if(!q1.empty() && !q2.empty()) {
+                if(queueFlag){
+                    currentProcess = q1.front();
+                    q1.pop();
+                    queueFlag = 0;
+                }else{
+                    currentProcess = q2.front();
+                    q2.pop();
+                    queueFlag = 1;
+                }
+                idle = 0;
+            }
+            else if (!q1.empty()) {
+                currentProcess = q1.front();
+                q1.pop();
+                idle = 0;
+                queueFlag = 0;
+            }
+            else if (!q2.empty()) {
+                currentProcess = q2.front();
+                q2.pop();
+                idle = 0;
+                queueFlag = 1;
+            }
+            
+        }
+        else {
+            if (queueFlag) {
+                // Q2 Execution Done -> Now load from Q1.
+                q2.push(currentProcess);
+
+                if (!q1.empty()) {
+                    currentProcess = q1.front();
+                    q1.pop();
+                    queueFlag = 0;
+                }
+                else {
+                    currentProcess = q2.front();
+                    q2.pop();
+                }
+            }
+            else {
+                // Q1 Execution Done -> Now load from Q2
+
+                q1.push(currentProcess);
+
+                if (!q2.empty()) {
+                    currentProcess = q2.front();
+                    q2.pop();
+                    queueFlag = 1;
+                } 
+                else {
+                    currentProcess = q1.front();
+                    q1.pop();
+                }
+            }
+        }
+
     }
 
-    // Create scheduler object
-    RoundRobin scheduler(tq);
-    scheduler.schedule(data);
-
-    // Display data
-    cout << "Process ID: " << "      " << "Name: " << "      " << "Arrival Time" << "      " << "Burst Time: " << "      " << "Student/Teacher" << '\n';
-
-    for(int i = 0; i < requests; i++) {
-        cout << data[i].process_id << "      " << data[i].name << "      " << data[i].atime << "      " << data[i].btime << "      " << data[i].person << '\n';
-    }
-
+    cout << "Total query time taken is " << queryTime << endl;
+    cout << "Average query time is " << ((queryTime * 5) / 6) << "%";
+    
     return 0;
 }
