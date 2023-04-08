@@ -9,7 +9,6 @@ struct Process {
     int arrivalTime;
     int burstTime;
     int remainingTime;
-    int executedTime;
 };
 
 int pId = 100;
@@ -45,7 +44,6 @@ vector<Process> createProcess() {
 
         // Set remaining time and executed time.
         p[i].remainingTime = p[i].burstTime;
-        p[i].executedTime = 0;
     }
 
     return p;
@@ -53,7 +51,7 @@ vector<Process> createProcess() {
 
 void setArrivalTimeQueue(queue<Process> &AT, vector<Process> &p) {
     sort(p.begin(), p.end(), [](Process &v1, Process &v2){return v1.arrivalTime < v2.arrivalTime;});
-    for(auto &it: p) {AT.push(it);}
+    for(auto &it: p) { AT.push(it); }
 }
 
 int main () {
@@ -131,10 +129,11 @@ int main () {
 
         int timeSlice = min(tq, currentProcess.remainingTime);
         currentProcess.remainingTime -= timeSlice;
-        currentProcess.executedTime += timeSlice;
-        if(currentTime + timeSlice > 120){
+
+        if(currentTime + timeSlice > 120) {
             break;
-        }else{
+        }
+        else {
             currentTime += timeSlice;
         }
 
