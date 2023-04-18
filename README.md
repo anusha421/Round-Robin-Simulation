@@ -35,9 +35,9 @@ Attributes provided are:
 
 ### Functions
 2 functions are used:
-+ createProcess() returns a vector of Process time.  
++ createProcess() returns a vector of Process type.  
 In this function each request (process) is created from user inputs.
-+ setArrivalTimeQueue takes to parameters; a queue with Process objects and a vector with Process objects.  
++ setArrivalTimeQueue takes two parameters; a queue with Process objects and a vector with Process objects.  
 This function sorts the given vector and then pushes it into the queue.  
 
 These two functions are used in the beginning of the main function. 
